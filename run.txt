@@ -1,0 +1,1 @@
+docker run --restart=always -e LOCALHOST=192.168.1.114 -e CONTROLLER_URL=192.168.1.114:6777 -e DB_HOST=192.168.1.114 -e DB_PORT=6612 -e MQTT_HOST=192.168.1.114 -e MIDDLEWARE_URL=192.168.1.114:7667 -p 7667:7667 --name cranemagic-middleware -d yijun9124/ksdp-service-middleware
