@@ -9,6 +9,12 @@ import random
 from functools import wraps
 import datetime
 from dotenv import load_dotenv
+
+load_dotenv('./.env')
+
+import os
+env = os.environ
+
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from _functional._algorithm import path_algorithm_easy, path_algorithm_two_point
@@ -16,11 +22,6 @@ from _functional._database import query, mutate, FULLCOLS
 from _functional._format import response_body, api, database_response_reformat
 from _functional._error import error, DATABASE_ERROR, LOGIN_FAILED, UNKNOWN_ERROR, EMPTY_INPUT, TOKEN_EXPIRED, NO_CURRUSER, WRONG_PASSWORD, TOKEN_INVAILD, TOKEN_MISSING, USERNAME_INVAILD, WRONG_PHONE, WRONG_USERID
 from _functional._mqtt import subscribeSingleMQTTMsgWithoutClient, transmitSingleMQTTMsgWithoutClient
-
-load_dotenv('./.env')
-
-import os
-env = os.environ
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)

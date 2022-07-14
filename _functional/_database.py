@@ -1,10 +1,46 @@
 import decimal
-from socket import timeout
 import pymysql
+import threading
 import json
 import datetime
 from pymysql.err import MySQLError
 
+from flask import request, current_app
+from werkzeug.local import LocalProxy
+import logging
+
+logger = LocalProxy(lambda: current_app.logger)
+
+import os
+env = os.environ
+
+from dbutils.pooled_db import PooledDB, SharedDBConnection
+
+# print(os.environ.get('DB_USER'))
+
+POOL = PooledDB(
+    creator=pymysql,
+    maxconnections=None,
+    mincached=2,
+    maxcached=8,
+    blocking=True,
+    maxusage=None,
+    setsession=[],
+    ping=1,
+    host=env.get('DB_HOST'),
+    port=int(env.get('DB_PORT')),
+    user=env.get('DB_USER'),
+    password=env.get('DB_PASS'),
+    database=env.get('DB_NAME'),
+    # host="localhost",
+    # port=6612,
+    # user="cranemagic",
+    # password="cranemagic++=20211001",
+    # database="cranemagic",
+    charset="utf8",
+)
+# POOL = LocalProxy(current_app.pool)
+# print(POOL)
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
@@ -104,8 +140,11 @@ def mutate(hostaddr, usr, pwd, hostport, database, sqlphase):
     sql = None
     try:
         # 打开数据库连接
-        db = pymysql.connect(host=hostaddr, user=usr,
-                            password=pwd, port=hostport, db=database)
+        # db = pymysql.connect(host=hostaddr, user=usr,
+        #                     password=pwd, port=hostport, db=database)
+        
+        db = POOL.connection()
+        logger.info("Open db connection: %s" % (sqlphase))
         # 使用cursor()方法获取操作游标
         cursor = db.cursor()
 
@@ -123,17 +162,22 @@ def mutate(hostaddr, usr, pwd, hostport, database, sqlphase):
         return "Success: %s" % sql
 
     except MySQLError as err:
+        
         # 发生错误时回滚
-        db.rollback()
+        if db:
+            db.rollback()
         # 关闭数据库连接
         # db.close()
         if sql:
+            logger.error("SQL: %s [%s]" % (sql, err.args[0]))
             return (False, [err.args[0], sql])
+        logger.error("%s" % (str(err)))
         return (False, [err.args[0]])
         return "Error: %s" % sql
     finally:
         if db:
             # 关闭数据库连接
+            logger.info("Close db connection")
             db.close()
 
 
@@ -142,9 +186,11 @@ def query(hostaddr, usr, pwd, hostport, database, cols, view, conditions=[], ord
     sql = None
     try:
         # 打开数据库连接
-        db = pymysql.connect(host=hostaddr, user=usr,
-                            password=pwd, port=hostport, db=database)
-
+        # db = pymysql.connect(host=hostaddr, user=usr,
+        #                     password=pwd, port=hostport, db=database)
+        
+        db = POOL.connection()
+        logger.info("Open db connection: %s" % (view))
         # 使用cursor()方法获取操作游标
         cursor = db.cursor()
 
@@ -176,12 +222,15 @@ def query(hostaddr, usr, pwd, hostport, database, cols, view, conditions=[], ord
         # db.close()
         # print(err.args[0], type(err))
         if sql:
+            logger.error("SQL: %s [%s]" % (sql, err.args[0]))
             return (False, [err.args[0], sql])
+        logger.error("%s" % (str(err)))
         return (False, [err.args[0]])
         return "Error: unable to fetch data"
     finally:
         if db:
             # 关闭数据库连接
+            logger.info("Close db connection")
             db.close()
 
 
