@@ -401,7 +401,7 @@ def sendTask():
             materialsql.append("UPDATE material SET `areaSeq`=`areaSeq`+%d WHERE `area_id`='%s' AND `warehouse_id`='%s';" % (item.get('deltaAreaSeq', 0), item.get('id', None), item.get('warehouse_id', None)))
         # 新增 material 表
         sql_new = "INSERT INTO material(id, model_id, area_id, warehouse_id, areaSeq, createTime) VALUES"
-        for item in [{'id': materialId, 'model_id': steel_model_to_area_id[request_data.get('steel_model', None)].replace('KW', 'KS00'), 'area_id': 'In', 'warehouse_id': warehouseId, 'areaSeq': 0}]:
+        for item in [{'id': materialId, 'model_id': request_data.get('steel_model', None), 'area_id': 'In', 'warehouse_id': warehouseId, 'areaSeq': 0}]:
             id, model_id, area_id, warehouse_id = item.get('id', None), item.get('model_id', None), item.get('area_id', None), item.get('warehouse_id', None)
             areaSeq = item.get('areaSeq', None)
             sql_new += "('%s', '%s', '%s', '%s', %d, '%s'), " % (id, model_id, area_id, warehouse_id, areaSeq, currentDateTime.strftime('%Y-%m-%d %H:%M:%S'))
