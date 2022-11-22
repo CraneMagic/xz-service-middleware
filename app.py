@@ -117,36 +117,55 @@ def sendTask():
     warehouseId = 'DP-Kunshan'
     currentDateTime = datetime.datetime.now()
     craneId = '85'
-    steel_model_to_area_id = {
-        '钢板6/Q235B': 'KW01',
-        '钢板8/SS400P': 'KW02',
-        '钢板10/SS400P': 'KW03',
-        '钢板12/SS400P': 'KW04',
-        '钢板12/Q345B': 'KW05',
-        '钢板14/SS400P': 'KW06',
-        '钢板14/Q345B': 'KW07',
-        '钢板16/SS400P': 'KW08',
-        '钢板20/Q345B': 'KW09',
-        '钢板22/Q345B': 'KW10',
-        '钢板25/Q345B': 'KW11',
-        '钢板8/Q345B': 'KW12',
-	    '60358082': 'KW01',
-        '110101020164AD26': 'KW02',
-        '110101020237AD5': 'KW03',
-        '110101020161AD29': 'KW04',
-        '110101020170AD30': 'KW05',
-        '110101020159AD17': 'KW06',
-        '60358086': 'KW07',
-        '60358117': 'KW08',
-        # '钢板20/Q345B++': 'KW09',
-        '110101020175AD20': 'KW10',
-        # '钢板25/Q345B++': 'KW11',
-        '110101020172AD23': 'KW12',
-    }
+    # steel_model_to_area_id = {
+    #     '钢板6/Q235B': 'KW01',
+    #     '钢板8/SS400P': 'KW02',
+    #     '钢板10/SS400P': 'KW03',
+    #     '钢板12/SS400P': 'KW04',
+    #     '钢板12/Q345B': 'KW05',
+    #     '钢板14/SS400P': 'KW06',
+    #     '钢板14/Q345B': 'KW07',
+    #     '钢板16/SS400P': 'KW08',
+    #     '钢板20/Q345B': 'KW09',
+    #     '钢板22/Q345B': 'KW10',
+    #     '钢板25/Q345B': 'KW11',
+    #     '钢板8/Q345B': 'KW12',
+	#     '60358082': 'KW01',
+    #     '110101020164AD26': 'KW02',
+    #     '110101020237AD5': 'KW03',
+    #     '110101020161AD29': 'KW04',
+    #     '110101020170AD30': 'KW05',
+    #     '110101020159AD17': 'KW06',
+    #     '60358086': 'KW07',
+    #     '60358117': 'KW08',
+    #     # '钢板20/Q345B++': 'KW09',
+    #     '110101020175AD20': 'KW10',
+    #     # '钢板25/Q345B++': 'KW11',
+    #     '110101020172AD23': 'KW12',
+    # }
     # 下发行车任务接口
     reqJson = request.get_json(silent=True)
     print(reqJson)
     request_data = reqJson.get('request_data', None)
+    # 获取型号库位对应信息
+    area_cols = ['id', 'comment']
+    area_conditions = ['warehouse_id=\'%s\'' % warehouseId]
+    (status, area_res) = query(env.get('DB_HOST'), env.get('DB_USER'), env.get('DB_PASS'), int(env.get('DB_PORT')), env.get('DB_NAME'), area_cols, 'view_area', area_conditions)
+    if not status:
+        # 999 未知错误
+        return json.dumps({
+            'request_code': reqJson['request_code'],
+            'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'response_result': 999,
+            'response_data': {}
+        })
+    steel_model_to_area_id = dict()
+    for item in area_res:
+        if item['comment'] != '':
+            steel_model_to_area_id.setdefault(item['comment'], item['id'])
+    
+    print(steel_model_to_area_id)
+
     # 获取起重机信息
     crane_cols = ['id', 'maxHeight']
     crane_conditions = ['id=\'%s\'' % craneId, 'warehouse_id=\'%s\'' % warehouseId]
@@ -169,7 +188,7 @@ def sendTask():
         })
     craneMaxHeight = crane_res[0]['maxHeight']
     # 比对钢板型号
-    # print(request_data.get('steel_model', None), list(steel_model_to_area_id.keys()))
+    print(request_data.get('steel_model', None), list(steel_model_to_area_id.keys()), request_data.get('steel_model', None) not in list(steel_model_to_area_id.keys()))
     if request_data.get('steel_model', None) not in list(steel_model_to_area_id.keys()):
         # 201 下发行车任务接口-钢板型号不存在
         return json.dumps({
