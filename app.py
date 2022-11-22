@@ -117,32 +117,7 @@ def sendTask():
     warehouseId = 'DP-Kunshan'
     currentDateTime = datetime.datetime.now()
     craneId = '85'
-    # steel_model_to_area_id = {
-    #     '钢板6/Q235B': 'KW01',
-    #     '钢板8/SS400P': 'KW02',
-    #     '钢板10/SS400P': 'KW03',
-    #     '钢板12/SS400P': 'KW04',
-    #     '钢板12/Q345B': 'KW05',
-    #     '钢板14/SS400P': 'KW06',
-    #     '钢板14/Q345B': 'KW07',
-    #     '钢板16/SS400P': 'KW08',
-    #     '钢板20/Q345B': 'KW09',
-    #     '钢板22/Q345B': 'KW10',
-    #     '钢板25/Q345B': 'KW11',
-    #     '钢板8/Q345B': 'KW12',
-	#     '60358082': 'KW01',
-    #     '110101020164AD26': 'KW02',
-    #     '110101020237AD5': 'KW03',
-    #     '110101020161AD29': 'KW04',
-    #     '110101020170AD30': 'KW05',
-    #     '110101020159AD17': 'KW06',
-    #     '60358086': 'KW07',
-    #     '60358117': 'KW08',
-    #     # '钢板20/Q345B++': 'KW09',
-    #     '110101020175AD20': 'KW10',
-    #     # '钢板25/Q345B++': 'KW11',
-    #     '110101020172AD23': 'KW12',
-    # }
+    
     # 下发行车任务接口
     reqJson = request.get_json(silent=True)
     print(reqJson)
@@ -151,21 +126,47 @@ def sendTask():
     area_cols = ['id', 'comment']
     area_conditions = ['warehouse_id=\'%s\'' % warehouseId]
     (status, area_res) = query(env.get('DB_HOST'), env.get('DB_USER'), env.get('DB_PASS'), int(env.get('DB_PORT')), env.get('DB_NAME'), area_cols, 'view_area', area_conditions)
+    # print(area_res)
     if not status:
         # 999 未知错误
         return json.dumps({
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 1}
         })
     steel_model_to_area_id = dict()
     for item in area_res:
         if item['comment'] != '':
             steel_model_to_area_id.setdefault(item['comment'], item['id'])
-    
+    if steel_model_to_area_id == {}:
+        steel_model_to_area_id = {
+            '钢板6/Q235B': 'KW01',
+            '钢板8/SS400P': 'KW02',
+            '钢板10/SS400P': 'KW03',
+            '钢板12/SS400P': 'KW04',
+            '钢板12/Q345B': 'KW05',
+            '钢板14/SS400P': 'KW06',
+            '钢板14/Q345B': 'KW07',
+            '钢板16/SS400P': 'KW08',
+            '钢板20/Q345B': 'KW09',
+            '钢板22/Q345B': 'KW10',
+            '钢板25/Q345B': 'KW11',
+            '钢板8/Q345B': 'KW12',
+            '60358082': 'KW01',
+            '110101020164AD26': 'KW02',
+            '110101020237AD5': 'KW03',
+            '110101020161AD29': 'KW04',
+            '110101020170AD30': 'KW05',
+            '110101020159AD17': 'KW06',
+            '60358086': 'KW07',
+            '60358117': 'KW08',
+            # '钢板20/Q345B++': 'KW09',
+            '110101020175AD20': 'KW10',
+            # '钢板25/Q345B++': 'KW11',
+            '110101020172AD23': 'KW12',
+        }
     print(steel_model_to_area_id)
-
     # 获取起重机信息
     crane_cols = ['id', 'maxHeight']
     crane_conditions = ['id=\'%s\'' % craneId, 'warehouse_id=\'%s\'' % warehouseId]
@@ -176,7 +177,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 2}
         })
     if not len(crane_res) == 1:
         # 999 未知错误
@@ -184,7 +185,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 3}
         })
     craneMaxHeight = crane_res[0]['maxHeight']
     # 比对钢板型号
@@ -209,7 +210,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 4}
         })
     if not len(materialmodel_res) == 1:
         # 999 未知错误
@@ -217,7 +218,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 5}
         })
     print(materialmodel_res)
     # 获取库位信息
@@ -230,7 +231,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 6}
         })
     if not len(area_res) == 1:
         # 999 未知错误
@@ -238,7 +239,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 7}
         })
     areaMaxHeight = int(area_res[0]['height'])
     viewname = 'view_material'
@@ -254,7 +255,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 8}
         })
     res_reformat = database_response_reformat(tablename, res)
     for material in res_reformat:
@@ -278,7 +279,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 999,
-                'response_data': {}
+                'response_data': {'data': 9}
             })
         inareaMaxHeight = int(inarea_res[0]['height'])
         sourceArea_id = 'IN'
@@ -292,7 +293,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 999,
-                'response_data': {}
+                'response_data': {'data': 10}
             })
         res_reformat1 = database_response_reformat(tablename, res1)
         # print(res_reformat1)
@@ -321,7 +322,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 999,
-                'response_data': {}
+                'response_data': {'data': 11}
             })
         if not len(outarea_res) == 1:
             # 202 station不存在
@@ -329,7 +330,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 202,
-                'response_data': {}
+                'response_data': {'data': 12}
             })
         outareaMaxHeight = int(outarea_res[0]['height'])
         targetArea_id = request_data.get('station', None)
@@ -343,7 +344,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 999,
-                'response_data': {}
+                'response_data': {'data': 13}
             })
         res_reformat2 = database_response_reformat(tablename, res2)
         # print(res_reformat2)
@@ -389,7 +390,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 16}
         })
     if request_data.get('mission_type', None) == 1:
         # 入库
@@ -419,7 +420,7 @@ def sendTask():
                     'request_code': reqJson['request_code'],
                     'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     'response_result': 999,
-                    'response_data': {}
+                    'response_data': {'data': 17}
                 })
     elif request_data.get('mission_type', None) == 2:
         # 上料
@@ -433,7 +434,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 999,
-                'response_data': {}
+                'response_data': {'data': 18}
             })
         if not len(material_res) == 1:
             # 203 下发行车任务接口-无该钢板型号材料
@@ -471,7 +472,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 19}
         })
     # 发送 MQTT 消息
     payload = {
@@ -512,7 +513,7 @@ def taskCancel():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 1,
-            'response_data': {}
+            'response_data': {'data': 20}
         })
     tasksql = "UPDATE task SET `status`='CANCELLED' WHERE `controller_task_id`='%s' AND `warehouse_id`='%s' AND `status`='PENDING'" % (request_data.get('mission_no', None), warehouseId)
     (status, mutateRes) = mutate(env.get('DB_HOST'), env.get('DB_USER'), env.get('DB_PASS'), int(env.get('DB_PORT')), env.get('DB_NAME'), tasksql)
@@ -523,7 +524,7 @@ def taskCancel():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {}
+            'response_data': {'data': 21}
         })
     responseBody = {
         'request_code': reqJson['request_code'],
@@ -607,7 +608,7 @@ def auth():
                         'request_code': reqJson['request_code'],
                         'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                         'response_result': 999,
-                        'response_data': {}
+                        'response_data': {'data': 22}
                     })
                 return json.dumps(responseBody)
                 api(response_body(200, 'auth', { 'token' : token, 'user': database_response_reformat('controller', [user])[0] }))
@@ -636,7 +637,7 @@ def auth():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 999,
-                'response_data': {}
+                'response_data': {'data': 23}
             })
     else:
         # 1 输入参数格式错误
