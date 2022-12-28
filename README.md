@@ -1,2 +1,2 @@
-# ksdp-service-middleware
-Kunshan Dongpu Middleware Service
+# xz-service-middleware
+Xuzhou Middleware Service
