@@ -458,7 +458,7 @@ def sendTask():
     id = currentDateTime.strftime('%Y%m%d%H%M%S')
     materials = ['%s,%s,%s' % (materialId, request_data.get('steel_info', None), materialWeight)]
     print(cranePosition, sourcePosition, targetPosition)
-    actionSeq = path_algorithm_easy(cranePosition, sourcePosition, targetPosition)
+    actionSeq = path_algorithm_easy(cranePosition, sourcePosition, targetPosition, 'xy')
     sendTime = currentDateTime.strftime('%Y-%m-%d %H:%M:%S')
     tasksql = "INSERT INTO task(`id`, `crane_id`, `sourceArea_id`, `targetArea_id`, `materials`, `actionSeq`, `warehouse_id`, `sendTime`, `status`, `controller_task_id`) "\
           "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % (id, craneId, sourceArea_id, targetArea_id, str(materials).replace("'", '"'), str(actionSeq).replace("'", '"'), warehouseId, sendTime, 'PENDING', request_data.get('mission_no', None))
