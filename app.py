@@ -114,9 +114,8 @@ def home():
 
 @app.route('/sendTask', methods=['POST'])
 def sendTask():
-    warehouseId = 'DP-Kunshan'
+    warehouseId = env.get('WAREHOUSE_ID')
     currentDateTime = datetime.datetime.now()
-    craneId = '85'
     
     # 下发行车任务接口
     reqJson = request.get_json(silent=True)
@@ -167,27 +166,27 @@ def sendTask():
             '110101020172AD23': 'KW12',
         }
     print(steel_model_to_area_id)
-    # 获取起重机信息
-    crane_cols = ['id', 'maxHeight']
-    crane_conditions = ['id=\'%s\'' % craneId, 'warehouse_id=\'%s\'' % warehouseId]
-    (status, crane_res) = query(env.get('DB_HOST'), env.get('DB_USER'), env.get('DB_PASS'), int(env.get('DB_PORT')), env.get('DB_NAME'), crane_cols, 'view_equipment', crane_conditions)
-    if not status:
-        # 999 未知错误
-        return json.dumps({
-            'request_code': reqJson['request_code'],
-            'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'response_result': 999,
-            'response_data': {'data': 2}
-        })
-    if not len(crane_res) == 1:
-        # 999 未知错误
-        return json.dumps({
-            'request_code': reqJson['request_code'],
-            'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'response_result': 999,
-            'response_data': {'data': 3}
-        })
-    craneMaxHeight = crane_res[0]['maxHeight']
+    # # 获取起重机信息
+    # crane_cols = ['id', 'maxHeight']
+    # crane_conditions = ['id=\'%s\'' % craneId, 'warehouse_id=\'%s\'' % warehouseId]
+    # (status, crane_res) = query(env.get('DB_HOST'), env.get('DB_USER'), env.get('DB_PASS'), int(env.get('DB_PORT')), env.get('DB_NAME'), crane_cols, 'view_equipment', crane_conditions)
+    # if not status:
+    #     # 999 未知错误
+    #     return json.dumps({
+    #         'request_code': reqJson['request_code'],
+    #         'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    #         'response_result': 999,
+    #         'response_data': {'data': 2}
+    #     })
+    # if not len(crane_res) == 1:
+    #     # 999 未知错误
+    #     return json.dumps({
+    #         'request_code': reqJson['request_code'],
+    #         'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    #         'response_result': 999,
+    #         'response_data': {'data': 3}
+    #     })
+    # craneMaxHeight = crane_res[0]['maxHeight']
     # 比对钢板型号
     print(request_data.get('steel_model', None), list(steel_model_to_area_id.keys()), request_data.get('steel_model', None) not in list(steel_model_to_area_id.keys()))
     if request_data.get('steel_model', None) not in list(steel_model_to_area_id.keys()):
@@ -263,6 +262,7 @@ def sendTask():
         areaHeight += int(material['model']['size']['height'])
     # 判断任务类型
     if request_data.get('mission_type', None) == 1:
+        craneId = env.get('CRANE_ID_MATERIAL_INPUTS')
         # 入库
         targetArea_id = steel_model_to_area_id[request_data.get('steel_model', None)]
         targetPosition = {
@@ -306,6 +306,7 @@ def sendTask():
             'zAxis': int(inareaMaxHeight - sourceAreaHeight),
         }
     elif request_data.get('mission_type', None) == 2:
+        craneId = int(env.get('CRANE_ID_MATERIAL_UPLOAD'))
         # 上料
         sourceArea_id = steel_model_to_area_id[request_data.get('steel_model', None)]
         sourcePosition = {
@@ -500,9 +501,9 @@ def sendTask():
 
 @app.route('/taskCancel', methods=['POST'])
 def taskCancel():
-    warehouseId = 'DP-Kunshan'
+    warehouseId = env.get('WAREHOUSE_ID')
     currentDateTime = datetime.datetime.now()
-    craneId = '85'
+    craneId = env.get('CRANE_ID_MATERIAL_INPUTS')
     # 任务取消指令
     reqJson = request.get_json(silent=True)
     print(reqJson)
@@ -538,7 +539,7 @@ def taskCancel():
 
 @app.route('/taskChange', methods=['POST'])
 def taskChange():
-    warehouseId = 'DP-Kunshan'
+    warehouseId = env.get('WAREHOUSE_ID')
     # 任务暂停或恢复接口
     reqJson = request.get_json(silent=True)
     print(reqJson)
@@ -554,8 +555,8 @@ def taskChange():
 
 @app.route('/auth', methods=['POST'])
 def auth():
-    warehouseId = 'DP-Kunshan'
-    craneId = '85'
+    warehouseId = env.get('WAREHOUSE_ID')
+    craneId = env.get('CRANE_ID_MATERIAL_INPUTS')
     # 中控登录/退出登录智能行车接口
     reqJson = request.get_json(silent=True)
     print(reqJson)
@@ -569,6 +570,7 @@ def auth():
     }
     # 获取行车信息
     dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
+    craneId = dictpayload.get('eventdata', None).get('CraneID')
     while not dictpayload.get('eventType', None) == 'Crone_Status' or not dictpayload.get('eventdata', None).get('CraneID') == craneId:
         dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
     if dictpayload.get('eventdata', None):
@@ -672,9 +674,9 @@ def register():
 @app.route('/manual', methods=['POST'])
 @token_required
 def manual(currentuser):
-    warehouseId = 'DP-Kunshan'
+    warehouseId = env.get('WAREHOUSE_ID')
     currentDateTime = datetime.datetime.now()
-    craneId = '85'
+    craneId = env.get('CRANE_ID_MATERIAL_INPUTS')
     action_to_area_id = {
         11: 'KW01',
         12: 'KW02',
@@ -695,6 +697,7 @@ def manual(currentuser):
     request_data = reqJson.get('request_data', None)
     # 获取行车信息
     dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
+    craneId = dictpayload.get('eventdata', None).get('CraneID')
     while not dictpayload.get('eventType', None) == 'Crone_Status' or not dictpayload.get('eventdata', None).get('CraneID') == craneId:
         dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
     if dictpayload.get('eventdata', None):
