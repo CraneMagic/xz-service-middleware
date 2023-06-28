@@ -17,7 +17,7 @@ env = os.environ
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from _functional._algorithm import path_algorithm_easy, path_algorithm_two_point
+from _functional._algorithm import path_algorithm_easy, path_algorithm_two_point, path_algorithm_four_point
 from _functional._database import query, mutate, FULLCOLS
 from _functional._format import response_body, api, database_response_reformat
 from _functional._error import error, DATABASE_ERROR, LOGIN_FAILED, UNKNOWN_ERROR, EMPTY_INPUT, TOKEN_EXPIRED, NO_CURRUSER, WRONG_PASSWORD, TOKEN_INVAILD, TOKEN_MISSING, USERNAME_INVAILD, WRONG_PHONE, WRONG_USERID
@@ -423,6 +423,20 @@ def sendTask():
                     'response_result': 999,
                     'response_data': {'data': 17}
                 })
+        materialWeight = '1000'
+        id = currentDateTime.strftime('%Y%m%d%H%M%S')
+        materials = ['%s,%s,%s' % (materialId, request_data.get('steel_info', None), materialWeight)]
+        resetPositionStr = env.get('CRANE_MATERIAL_INPUTS_RESET_POSITION')
+        priority = env.get('CRANE_MATERIAL_INPUTS_PRIORITY')
+        resetPositionArr = resetPositionStr.split(',')
+        resetPosition = {
+            'xAxis': int(resetPositionArr[0]),
+            'yAxis': int(resetPositionArr[1]),
+            'zAxis': 0,
+            'degree': 0,
+        }
+        print(cranePosition, sourcePosition, targetPosition, resetPosition, priority)
+        actionSeq = path_algorithm_four_point(cranePosition, sourcePosition, targetPosition, resetPosition, priority)
     elif request_data.get('mission_type', None) == 2:
         # 上料
         # 获取材料信息
@@ -446,6 +460,20 @@ def sendTask():
                 'response_data': {}
             })
         materialId = material_res[0]['id']
+        materialWeight = '1000'
+        id = currentDateTime.strftime('%Y%m%d%H%M%S')
+        materials = ['%s,%s,%s' % (materialId, request_data.get('steel_info', None), materialWeight)]
+        resetPositionStr = env.get('CRANE_MATERIAL_UPLOAD_RESET_POSITION')
+        priority = env.get('CRANE_MATERIAL_UPLOAD_PRIORITY')
+        resetPositionArr = resetPositionStr.split(',')
+        resetPosition = {
+            'xAxis': int(resetPositionArr[0]),
+            'yAxis': int(resetPositionArr[1]),
+            'zAxis': 0,
+            'degree': 0,
+        }
+        print(cranePosition, sourcePosition, targetPosition, resetPosition, priority)
+        actionSeq = path_algorithm_four_point(cranePosition, sourcePosition, targetPosition, resetPosition, priority)
     else:
         # 1 输入参数格式错误
             return json.dumps({
@@ -455,11 +483,11 @@ def sendTask():
                 'response_data': {}
             })
     # 写入 task 数据库
-    materialWeight = '1000'
-    id = currentDateTime.strftime('%Y%m%d%H%M%S')
-    materials = ['%s,%s,%s' % (materialId, request_data.get('steel_info', None), materialWeight)]
-    print(cranePosition, sourcePosition, targetPosition)
-    actionSeq = path_algorithm_easy(cranePosition, sourcePosition, targetPosition, 'xy')
+    # materialWeight = '1000'
+    # id = currentDateTime.strftime('%Y%m%d%H%M%S')
+    # materials = ['%s,%s,%s' % (materialId, request_data.get('steel_info', None), materialWeight)]
+    # print(cranePosition, sourcePosition, targetPosition)
+    # actionSeq = path_algorithm_easy(cranePosition, sourcePosition, targetPosition, 'xy')
     sendTime = currentDateTime.strftime('%Y-%m-%d %H:%M:%S')
     tasksql = "INSERT INTO task(`id`, `crane_id`, `sourceArea_id`, `targetArea_id`, `materials`, `actionSeq`, `warehouse_id`, `sendTime`, `status`, `controller_task_id`) "\
           "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % (id, craneId, sourceArea_id, targetArea_id, str(materials).replace("'", '"'), str(actionSeq).replace("'", '"'), warehouseId, sendTime, 'PENDING', request_data.get('mission_no', None))
