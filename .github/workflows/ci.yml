@@ -1,4 +1,4 @@
-name: KSDP Service Middleware CI - Develop
+name: Xuzhou Service Middleware CI - Develop
 
 on:
   push:
