@@ -483,6 +483,23 @@ def sendTask():
         # 修改材料位置至 VIRTUAL
         rmsql = "UPDATE material SET `area_id`='VIRTUAL' WHERE id='%s' AND `warehouse_id`='%s'" % (materialId, warehouseId)
         (status, mutateRes) = mutate(env.get('DB_HOST'), env.get('DB_USER'), env.get('DB_PASS'), int(env.get('DB_PORT')), env.get('DB_NAME'), rmsql)
+        # 起始库位材料顺序变化
+        materialsql = []
+        for item in [{'id': sourceArea_id, 'warehouse_id': warehouseId, 'deltaAreaSeq': 1}]:
+            materialsql.append("UPDATE material SET `areaSeq`=`areaSeq`-%d WHERE `area_id`='%s' AND `warehouse_id`='%s';" % (item.get('deltaAreaSeq', 0), item.get('id', None), item.get('warehouse_id', None)))
+        for sqlItem in materialsql:
+            (status, mutateResItem) = mutate(env.get('DB_HOST'), env.get('DB_USER'), env.get('DB_PASS'), int(env.get('DB_PORT')), env.get('DB_NAME'), sqlItem)
+            if status:
+                continue
+            else:
+                print(mutateResItem, DATABASE_ERROR[mutateResItem[0]])
+                # 999 未知错误
+                return json.dumps({
+                    'request_code': reqJson['request_code'],
+                    'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'response_result': 999,
+                    'response_data': {'data': 182}
+                })
         if not status:
             # 999 未知错误
             return json.dumps({
