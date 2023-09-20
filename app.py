@@ -8,6 +8,7 @@ import jwt
 import random
 from functools import wraps
 import datetime
+import time
 from dotenv import load_dotenv
 
 load_dotenv('./.env')
@@ -307,6 +308,7 @@ def sendTask():
         }
     elif request_data.get('mission_type', None) == 2:
         craneId = int(env.get('CRANE_ID_MATERIAL_UPLOAD'))
+        print(craneId)
         # 上料
         sourceArea_id = steel_model_to_area_id[request_data.get('steel_model', None)]
         sourcePosition = {
@@ -366,8 +368,22 @@ def sendTask():
                 'response_data': {}
             })
     # 获取行车信息
+    print('Target Crane', craneId)
     dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
-    while not dictpayload.get('eventType', None) == 'Crone_Status' or not dictpayload.get('eventdata', None).get('CraneID') == craneId:
+    # print(dictpayload, dictpayload.get('eventType', None) == 'Crone_Status', dictpayload.get('eventdata', None).get('CraneID'), dictpayload.get('eventdata', None).get('CraneID') == craneId)
+    while_start_time = time.time()
+    while not dictpayload.get('eventType', None) == 'Crone_Status' or not int(dictpayload.get('eventdata', None).get('CraneID')) == int(craneId):
+        while_elapsed_time = time.time() - while_start_time
+        if while_elapsed_time > 10:
+            # 200 下发行车任务接口-获取行车信号超时
+            return json.dumps({
+                'request_code': reqJson['request_code'],
+                'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'response_result': 400,
+                'response_data': {
+                    'msg': '获取行车 %s 信号超时'  % craneId
+                }
+            })
         dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
     if dictpayload.get('eventdata', None):
         if int(dictpayload.get('eventdata', None).get('Crane_WorkStatus', None)) == 0:
