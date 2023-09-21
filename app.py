@@ -133,7 +133,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 1}
+            'response_data': {'msg': '数据库错误', 'data': 1}
         })
     steel_model_to_area_id = dict()
     for item in area_res:
@@ -210,7 +210,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 4}
+            'response_data': {'msg': '数据库错误', 'data': 4}
         })
     if not len(materialmodel_res) == 1:
         # 999 未知错误
@@ -218,7 +218,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 5}
+            'response_data': {'msg': '数据库错误', 'data': 5}
         })
     print(materialmodel_res)
     # 获取库位信息
@@ -231,7 +231,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 6}
+            'response_data': {'msg': '数据库错误', 'data': 6}
         })
     if not len(area_res) == 1:
         # 999 未知错误
@@ -239,7 +239,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 7}
+            'response_data': {'msg': '数据库错误', 'data': 7}
         })
     areaMaxHeight = int(area_res[0]['height'])
     viewname = 'view_material'
@@ -255,7 +255,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 8}
+            'response_data': {'msg': '数据库错误', 'data': 8}
         })
     res_reformat = database_response_reformat(tablename, res)
     for material in res_reformat:
@@ -264,6 +264,7 @@ def sendTask():
     # 判断任务类型
     if request_data.get('mission_type', None) == 1:
         craneId = env.get('CRANE_ID_MATERIAL_INPUTS')
+        print('request_data.get(\'mission_type\', None) == 1', craneId, type(craneId))
         # 入库
         targetArea_id = steel_model_to_area_id[request_data.get('steel_model', None)]
         targetPosition = {
@@ -307,8 +308,8 @@ def sendTask():
             'zAxis': int(inareaMaxHeight - sourceAreaHeight),
         }
     elif request_data.get('mission_type', None) == 2:
-        craneId = int(env.get('CRANE_ID_MATERIAL_UPLOAD'))
-        print(craneId)
+        craneId = env.get('CRANE_ID_MATERIAL_UPLOAD')
+        print('request_data.get(\'mission_type\', None) == 2', craneId, type(craneId))
         # 上料
         sourceArea_id = steel_model_to_area_id[request_data.get('steel_model', None)]
         sourcePosition = {
@@ -365,12 +366,12 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 1,
-                'response_data': {}
+                'response_data': { 'msg': '输入参数格式错误' }
             })
     # 获取行车信息
     print('Target Crane', craneId)
     dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
-    # print(dictpayload, dictpayload.get('eventType', None) == 'Crone_Status', dictpayload.get('eventdata', None).get('CraneID'), dictpayload.get('eventdata', None).get('CraneID') == craneId)
+    print(dictpayload, dictpayload.get('eventType', None) == 'Crone_Status', dictpayload.get('eventdata', None).get('CraneID'), dictpayload.get('eventdata', None).get('CraneID') == craneId)
     while_start_time = time.time()
     while not dictpayload.get('eventType', None) == 'Crone_Status' or not int(dictpayload.get('eventdata', None).get('CraneID')) == int(craneId):
         while_elapsed_time = time.time() - while_start_time
@@ -407,7 +408,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 16}
+            'response_data': {'msg': '数据库错误', 'data': 16}
         })
     if request_data.get('mission_type', None) == 1:
         # 入库
@@ -473,7 +474,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 203,
-                'response_data': {}
+                'response_data': { 'msg': '无该钢板型号材料' }
             })
         materialId = material_res[0]['id']
         materialWeight = '1000'
@@ -496,7 +497,7 @@ def sendTask():
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'response_result': 1,
-                'response_data': {}
+                'response_data': { 'msg': '输入参数格式错误' }
             })
     # 写入 task 数据库
     # materialWeight = '1000'
@@ -517,7 +518,7 @@ def sendTask():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 19}
+            'response_data': {'msg': '数据库错误', 'data': 19}
         })
     # 发送 MQTT 消息
     payload = {
@@ -569,7 +570,7 @@ def taskCancel():
             'request_code': reqJson['request_code'],
             'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'response_result': 999,
-            'response_data': {'data': 21}
+            'response_data': {'msg': '数据库错误', 'data': 21}
         })
     responseBody = {
         'request_code': reqJson['request_code'],
