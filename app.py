@@ -377,7 +377,7 @@ def sendTask():
         if int(payload.get('eventdata', None).get('CraneID')) == int(craneId):
             dictpayload = payload
     # dictpayload = dictpayloads[0]
-    # print(dictpayloads)
+    print(dictpayloads)
     if not dictpayload:
         # 400 下发行车任务接口-获取行车信号超时
         return json.dumps({
@@ -408,7 +408,18 @@ def sendTask():
         for payload in dictpayloads:
             if int(payload.get('eventdata', None).get('CraneID')) == int(craneId):
                 dictpayload = payload
+        print(dictpayloads)
         print(dictpayload)
+        if not dictpayload:
+            # 400 下发行车任务接口-获取行车信号超时
+            return json.dumps({
+                'request_code': reqJson['request_code'],
+                'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'response_result': 403,
+                'response_data': {
+                    'msg': '未获取到有效行车信号（目标行车：%s）'  % craneId
+                }
+            })
     if dictpayload.get('eventdata', None):
         if int(dictpayload.get('eventdata', None).get('Crane_WorkStatus', None)) == 0:
             if dictpayload.get('eventdata', None).get('Crane_Position', None):
