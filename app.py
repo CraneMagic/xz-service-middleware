@@ -370,22 +370,44 @@ def sendTask():
             })
     # 获取行车信息
     print('Target Crane', craneId)
-    dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
+    # dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
+    dictpayloads = [eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8')), eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))]
+    dictpayload = {}
+    for payload in dictpayloads:
+        if int(payload.get('eventdata', None).get('CraneID')) == int(craneId):
+            dictpayload = payload
+    # dictpayload = dictpayloads[0]
+    # print(dictpayloads)
+    if not dictpayload:
+        # 400 下发行车任务接口-获取行车信号超时
+        return json.dumps({
+            'request_code': reqJson['request_code'],
+            'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'response_result': 403,
+            'response_data': {
+                'msg': '未获取到有效行车信号（目标行车：%s）'  % craneId
+            }
+        })
     print(dictpayload, dictpayload.get('eventType', None) == 'Crone_Status', dictpayload.get('eventdata', None).get('CraneID'), dictpayload.get('eventdata', None).get('CraneID') == craneId)
     while_start_time = time.time()
-    while not dictpayload.get('eventType', None) == 'Crone_Status' or not int(dictpayload.get('eventdata', None).get('CraneID')) == int(craneId):
+    while not (dictpayload.get('eventType', None) == 'Crone_Status' and int(dictpayload.get('eventdata', None).get('CraneID')) == int(craneId)):
         while_elapsed_time = time.time() - while_start_time
         if while_elapsed_time > 10:
             # 200 下发行车任务接口-获取行车信号超时
             return json.dumps({
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'response_result': 400,
+                'response_result': 403,
                 'response_data': {
                     'msg': '获取行车 %s 信号超时'  % craneId
                 }
             })
-        dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
+        # dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
+        dictpayloads = [eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8')), eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))]
+        dictpayload = {}
+        for payload in dictpayloads:
+            if int(payload.get('eventdata', None).get('CraneID')) == int(craneId):
+                dictpayload = payload
         print(dictpayload)
     if dictpayload.get('eventdata', None):
         if int(dictpayload.get('eventdata', None).get('Crane_WorkStatus', None)) == 0:
@@ -400,7 +422,7 @@ def sendTask():
             return json.dumps({
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'response_result': 400,
+                'response_result': 403,
                 'response_data': {
                     'msg': '行车 %s 现在无法接受任务'  % craneId
                 }
