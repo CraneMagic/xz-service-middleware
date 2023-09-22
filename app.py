@@ -371,13 +371,15 @@ def sendTask():
     # 获取行车信息
     print('Target Crane', craneId)
     # dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
-    dictpayloads = [eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8')), eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))]
+    # dictpayloads = [eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8')), eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))]
+    dictpayloads = [*subscribeSingleMQTTMsgWithoutClient('iot/task_reponse', 2)]
+    print(dictpayloads)
     dictpayload = {}
     for payload in dictpayloads:
         if int(payload.get('eventdata', None).get('CraneID')) == int(craneId):
             dictpayload = payload
+            break
     # dictpayload = dictpayloads[0]
-    print(dictpayloads)
     if not dictpayload:
         # 400 下发行车任务接口-获取行车信号超时
         return json.dumps({
@@ -403,12 +405,14 @@ def sendTask():
                 }
             })
         # dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
-        dictpayloads = [eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8')), eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))]
+        # dictpayloads = [eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8')), eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))]
+        dictpayloads = [*subscribeSingleMQTTMsgWithoutClient('iot/task_reponse', 2)]
+        print(dictpayloads)
         dictpayload = {}
         for payload in dictpayloads:
             if int(payload.get('eventdata', None).get('CraneID')) == int(craneId):
                 dictpayload = payload
-        print(dictpayloads)
+                break
         print(dictpayload)
         if not dictpayload:
             # 400 下发行车任务接口-获取行车信号超时
