@@ -386,6 +386,7 @@ def sendTask():
                 }
             })
         dictpayload = eval(str(subscribeSingleMQTTMsgWithoutClient(), 'utf-8'))
+        print(dictpayload)
     if dictpayload.get('eventdata', None):
         if int(dictpayload.get('eventdata', None).get('Crane_WorkStatus', None)) == 0:
             if dictpayload.get('eventdata', None).get('Crane_Position', None):
