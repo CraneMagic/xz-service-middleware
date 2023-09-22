@@ -400,8 +400,10 @@ def sendTask():
             return json.dumps({
                 'request_code': reqJson['request_code'],
                 'response_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'response_result': 200,
-                'response_data': {}
+                'response_result': 400,
+                'response_data': {
+                    'msg': '行车 %s 现在无法接受任务'  % craneId
+                }
             })
     else:
         # 999 未知错误
